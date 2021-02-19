@@ -120,6 +120,15 @@ const Utils = {
         const splitDate = date.split("-")
         return `${splitDate[2]}/${splitDate[1]}/${splitDate[0]}`
     },
+
+    setCurrentDate() {
+        const currDate = new Date()
+        const dateInputValue = document.querySelector('input[type="date"]')
+        const year = currDate.getFullYear()
+        const month = ('0' + (currDate.getMonth() + 1)).slice(-2)
+        const date = ('0' + currDate.getDate()).slice(-2)
+        dateInputValue.value = `${year}-${month}-${date}`
+    }
 }
 
 const Form = {
