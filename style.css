@@ -211,6 +211,19 @@ td.expense {
     color: var(--red);
 }
 
+td.monthly-separator {
+    background: none; 
+    text-align: center;
+}
+
+td.monthly-separator span {
+    font-size: 75%;
+    padding: .1rem .95rem;
+    background-color: var(--green);
+    color: white;
+    border-radius: 3rem;
+}
+
 /* Modal ===========================*/
 .modal-overlay {
     width: 100%;

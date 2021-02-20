@@ -54,6 +54,27 @@ const Transaction = {
 
     total() {
         return Transaction.incomes() + Transaction.expenses()
+    },
+
+    monthlyBalance() {
+        let monthBal = [] // monthBal = [obj1, obj2, ...]  obj = {period: "Janeiro de 2014", income: 7094, expenses: -4134, total: income - expenses}
+        Transaction.all.forEach(transaction => {
+            const period = Utils.getMonthAndYearString(transaction)
+            const exists = monthBal.findIndex(item => {return item.period == period})
+            if ( exists > -1) {
+                monthBal[exists].income += transaction.amount > 0 ? transaction.amount : 0
+                monthBal[exists].expenses += transaction.amount < 0 ? transaction.amount : 0
+                monthBal[exists].total = monthBal[exists].income + monthBal[exists].expenses
+            } else {
+                monthBal.push({
+                    period: period,
+                    income: transaction.amount > 0 ? transaction.amount : 0,
+                    expenses: transaction.amount < 0 ? transaction.amount : 0,
+                    total: transaction.amount
+                })
+            }
+        })
+        return monthBal
     }
 }
 
@@ -91,8 +112,8 @@ const DOM = {
         if (!DOM.lastPeriod || (DOM.lastPeriod !== separator)) {
             const tr = document.createElement('tr')
             tr.innerHTML = `
-            <td style="background: none; text-align: center;" colspan="4">
-                ${separator}
+            <td class="monthly-separator" colspan="4">
+                <span>${separator}</span>
             </td>
             `
             DOM.lastPeriod = separator
@@ -229,7 +250,7 @@ const App = {
     init() {
         Transaction.all.forEach(DOM.addTransaction)
         DOM.updateBalance()
-        Storage.set(Transaction.all)   
+        Storage.set(Transaction.all)
     },
 
     reload() {
