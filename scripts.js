@@ -60,7 +60,10 @@ const Transaction = {
 const DOM = {
     transactionsContainer: document.querySelector("#data-table tbody"),
 
+    lastPeriod: undefined,
+
     addTransaction(transaction, index) {
+        DOM.monthlyDivision(transaction)
         const tr = document.createElement('tr')
         tr.innerHTML = DOM.innerHTMLTransaction(transaction, index)
         tr.dataset.index = index
@@ -83,6 +86,24 @@ const DOM = {
         return html
     },
 
+    monthlyDivision(transaction) {
+        const separator = Utils.getMonthAndYearString(transaction)
+        if (!DOM.lastPeriod || (DOM.lastPeriod !== separator)) {
+            const tr = document.createElement('tr')
+            tr.innerHTML = `
+            <td style="background: none; text-align: center;" colspan="4">
+                ${separator}
+            </td>
+            `
+            DOM.lastPeriod = separator
+            DOM.transactionsContainer.appendChild(tr)
+            return undefined
+        } else if (DOM.lastPeriod === separator) {
+            return undefined
+        }
+    },
+
+
     updateBalance() {
         document
             .getElementById('incomeDisplay')
@@ -96,6 +117,7 @@ const DOM = {
     },
 
     clearTransactions() {
+        DOM.lastPeriod = undefined
         DOM.transactionsContainer.innerHTML = ""
     }
 }
@@ -138,6 +160,15 @@ const Utils = {
         const dateB = new Date(year2, month2, date2)
         // B - A for descending order
         return dateB - dateA
+    },
+
+    months: ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
+
+    getMonthAndYearString(transaction) {
+        const date = transaction.date.split("/")
+        const month = Number(date[1]) - 1
+
+        return `${Utils.months[month]} de ${date[2]}`
     }
 }
 
