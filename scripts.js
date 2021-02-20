@@ -23,6 +23,7 @@ const Transaction = {
 
     add(transaction) {
         Transaction.all.push(transaction)
+        Transaction.all.sort(Utils.sortByDate)
         App.reload()
     },
 
@@ -128,6 +129,15 @@ const Utils = {
         const month = ('0' + (currDate.getMonth() + 1)).slice(-2)
         const date = ('0' + currDate.getDate()).slice(-2)
         dateInputValue.value = `${year}-${month}-${date}`
+    },
+
+    sortByDate(A, B) {
+        const [date1, month1, year1] = A.date.split("/")
+        const [date2, month2, year2] = B.date.split("/")
+        const dateA = new Date(year1, month1, date1)
+        const dateB = new Date(year2, month2, date2)
+        // B - A for descending order
+        return dateB - dateA
     }
 }
 
