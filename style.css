@@ -36,7 +36,6 @@ body {
 
 .container {
     width: min(90vw, 800px);
-
     margin: auto;
 }
 
@@ -154,6 +153,10 @@ header {
     color: white;
 }
 
+div.table-card-container {
+    display: none;
+}
+
 /* Table ========================== */
 #transaction {
     display: block;
@@ -174,7 +177,7 @@ table tbody tr td:first-child {
 
 table thead tr th:last-child,
 table tbody tr td:last-child {
-    border-radius: 0 0.5rem 0.25rem 0;
+    border-radius: 0 0.25rem 0.25rem 0;
 }
 
 table thead th {
@@ -217,7 +220,7 @@ td.monthly-separator {
 }
 
 td.monthly-separator span {
-    font-size: 75%;
+    font-size: 0.9rem;
     padding: .1rem .95rem;
     background-color: var(--green);
     color: white;
@@ -310,5 +313,65 @@ footer {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 2rem;
+    }
+
+    div.table-card-container {
+        display: none;
+    }
+}
+
+@media (min-width: 1200px) {
+    #transaction {
+        display: block;
+        width: 100%;
+        overflow: visible;
+    }
+    
+    div.table-card-container.active {
+        position: relative;
+        display: block;
+        animation: fadeIn 700ms;
+    }
+
+    @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+      
+        to {
+          opacity: 1;
+        }
+    }
+    
+    div.monthly-balance {
+        border-radius: 0.25rem;
+
+        text-align: left;
+
+        background-color: white;
+        position: absolute;
+        right: -18rem;
+    }
+
+    div.monthly-balance h3 {
+        font-weight: normal;
+        font-size: 0.9rem;
+    
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    div.monthly-balance span {
+        background: none;
+        color: var(--dark-blue);
+    }
+
+    .monthly-total {
+        background: var(--green);
+    }
+    
+    .monthly-total h3 span {
+        color: white;
     }
 }

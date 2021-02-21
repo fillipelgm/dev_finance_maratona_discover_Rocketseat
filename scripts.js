@@ -7,6 +7,21 @@ const Modal = {
     }
 }
 
+const MonthCards = {
+    addListeners() {
+        let cards = document.querySelectorAll('.monthly-separator')
+        for (let i = 0; i < cards.length; i++) {
+            cards[i].addEventListener("mouseover", () => {
+                cards[i].lastElementChild.classList.add('active')
+            })
+            cards[i].addEventListener("mouseout", () => {
+                cards[i].lastElementChild.classList.remove('active')
+            })
+        }
+    }
+}
+
+
 const Storage = {
     get() {
         return JSON.parse(localStorage.getItem("dev.finances:transactions")) || []
@@ -84,7 +99,7 @@ const DOM = {
     lastPeriod: undefined,
 
     addTransaction(transaction, index) {
-        DOM.monthlyDivision(transaction)
+        DOM.monthTransactions(transaction)
         const tr = document.createElement('tr')
         tr.innerHTML = DOM.innerHTMLTransaction(transaction, index)
         tr.dataset.index = index
@@ -107,13 +122,36 @@ const DOM = {
         return html
     },
 
-    monthlyDivision(transaction) {
+    monthTransactions(transaction) {
         const separator = Utils.getMonthAndYearString(transaction)
         if (!DOM.lastPeriod || (DOM.lastPeriod !== separator)) {
             const tr = document.createElement('tr')
+            
             tr.innerHTML = `
             <td class="monthly-separator" colspan="4">
                 <span>${separator}</span>
+                <div class="table-card-container">
+                    <div class="monthly-balance">
+                        <div class="monthly-income" >
+                            <h3>
+                                <span>Entradas:</span>
+                                <span class="monthly-income-display">R$ 0,00</span>
+                            </h3>
+                        </div>
+                        <div class="monthly-expenses">
+                            <h3>
+                                <span>Saídas:</span>
+                                <span class="monthly-expenses-display">R$ 0,00</span>
+                            </h3>
+                        </div>
+                        <div class="monthly-total">
+                            <h3>
+                                <span>Total:</span>
+                                <span class="monthly-total-display">R$ 0,00</span>
+                            </h3>
+                        </div>
+                    </div>
+                </div>
             </td>
             `
             DOM.lastPeriod = separator
@@ -135,6 +173,20 @@ const DOM = {
         document
             .getElementById('totalDisplay')
             .innerHTML = Utils.formatCurrency(Transaction.total())
+    },
+
+    updateMonthBalance() {
+        monthBalances = Transaction.monthlyBalance()
+        monthBalances.forEach((balance, index) => {
+            let income = document.querySelectorAll(".monthly-income-display")
+            income[index].innerHTML = Utils.formatCurrency(balance.income)
+
+            let expenses = document.querySelectorAll(".monthly-expenses-display")
+            expenses[index].innerHTML = Utils.formatCurrency(balance.expenses)
+            
+            let total = document.querySelectorAll(".monthly-total-display")
+            total[index].innerHTML = Utils.formatCurrency(balance.total)
+        })
     },
 
     clearTransactions() {
@@ -250,6 +302,8 @@ const App = {
     init() {
         Transaction.all.forEach(DOM.addTransaction)
         DOM.updateBalance()
+        DOM.updateMonthBalance()
+        MonthCards.addListeners()
         Storage.set(Transaction.all)
     },
 
