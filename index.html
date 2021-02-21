@@ -46,7 +46,7 @@
             <h2 class="sr-only">Transações</h2>
 
             <a href="#"
-            onclick="Modal.toggle()" class="button new">+ Nova Transação</a>
+            onclick="Modal.toggle(); Utils.setCurrentDate()" class="button new">+ Nova Transação</a>
 
             <table id="data-table">
                 <thead>
@@ -101,6 +101,7 @@
                             type="date"
                             id="date"
                             name="date"
+                            required
                         />
                     </div>
 

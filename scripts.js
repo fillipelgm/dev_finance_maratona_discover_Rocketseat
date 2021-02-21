@@ -7,6 +7,21 @@ const Modal = {
     }
 }
 
+const MonthCards = {
+    addListeners() {
+        let cards = document.querySelectorAll('.monthly-separator')
+        for (let i = 0; i < cards.length; i++) {
+            cards[i].addEventListener("mouseover", () => {
+                cards[i].lastElementChild.classList.add('active')
+            })
+            cards[i].addEventListener("mouseout", () => {
+                cards[i].lastElementChild.classList.remove('active')
+            })
+        }
+    }
+}
+
+
 const Storage = {
     get() {
         return JSON.parse(localStorage.getItem("dev.finances:transactions")) || []
@@ -23,6 +38,7 @@ const Transaction = {
 
     add(transaction) {
         Transaction.all.push(transaction)
+        Transaction.all.sort(Utils.sortByDate)
         App.reload()
     },
 
@@ -53,13 +69,37 @@ const Transaction = {
 
     total() {
         return Transaction.incomes() + Transaction.expenses()
+    },
+
+    monthlyBalance() {
+        let monthBal = [] // monthBal = [obj1, obj2, ...]  obj = {period: "Janeiro de 2014", income: 7094, expenses: -4134, total: income - expenses}
+        Transaction.all.forEach(transaction => {
+            const period = Utils.getMonthAndYearString(transaction)
+            const exists = monthBal.findIndex(item => {return item.period == period})
+            if ( exists > -1) {
+                monthBal[exists].income += transaction.amount > 0 ? transaction.amount : 0
+                monthBal[exists].expenses += transaction.amount < 0 ? transaction.amount : 0
+                monthBal[exists].total = monthBal[exists].income + monthBal[exists].expenses
+            } else {
+                monthBal.push({
+                    period: period,
+                    income: transaction.amount > 0 ? transaction.amount : 0,
+                    expenses: transaction.amount < 0 ? transaction.amount : 0,
+                    total: transaction.amount
+                })
+            }
+        })
+        return monthBal
     }
 }
 
 const DOM = {
     transactionsContainer: document.querySelector("#data-table tbody"),
 
+    lastPeriod: undefined,
+
     addTransaction(transaction, index) {
+        DOM.monthTransactions(transaction)
         const tr = document.createElement('tr')
         tr.innerHTML = DOM.innerHTMLTransaction(transaction, index)
         tr.dataset.index = index
@@ -82,6 +122,47 @@ const DOM = {
         return html
     },
 
+    monthTransactions(transaction) {
+        const separator = Utils.getMonthAndYearString(transaction)
+        if (!DOM.lastPeriod || (DOM.lastPeriod !== separator)) {
+            const tr = document.createElement('tr')
+            
+            tr.innerHTML = `
+            <td class="monthly-separator" colspan="4">
+                <span>${separator}</span>
+                <div class="table-card-container">
+                    <div class="monthly-balance">
+                        <div class="monthly-income" >
+                            <h3>
+                                <span>Entradas:</span>
+                                <span class="monthly-income-display">R$ 0,00</span>
+                            </h3>
+                        </div>
+                        <div class="monthly-expenses">
+                            <h3>
+                                <span>Saídas:</span>
+                                <span class="monthly-expenses-display">R$ 0,00</span>
+                            </h3>
+                        </div>
+                        <div class="monthly-total">
+                            <h3>
+                                <span>Total:</span>
+                                <span class="monthly-total-display">R$ 0,00</span>
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+            </td>
+            `
+            DOM.lastPeriod = separator
+            DOM.transactionsContainer.appendChild(tr)
+            return undefined
+        } else if (DOM.lastPeriod === separator) {
+            return undefined
+        }
+    },
+
+
     updateBalance() {
         document
             .getElementById('incomeDisplay')
@@ -94,7 +175,22 @@ const DOM = {
             .innerHTML = Utils.formatCurrency(Transaction.total())
     },
 
+    updateMonthBalance() {
+        monthBalances = Transaction.monthlyBalance()
+        monthBalances.forEach((balance, index) => {
+            let income = document.querySelectorAll(".monthly-income-display")
+            income[index].innerHTML = Utils.formatCurrency(balance.income)
+
+            let expenses = document.querySelectorAll(".monthly-expenses-display")
+            expenses[index].innerHTML = Utils.formatCurrency(balance.expenses)
+            
+            let total = document.querySelectorAll(".monthly-total-display")
+            total[index].innerHTML = Utils.formatCurrency(balance.total)
+        })
+    },
+
     clearTransactions() {
+        DOM.lastPeriod = undefined
         DOM.transactionsContainer.innerHTML = ""
     }
 }
@@ -120,6 +216,33 @@ const Utils = {
         const splitDate = date.split("-")
         return `${splitDate[2]}/${splitDate[1]}/${splitDate[0]}`
     },
+
+    setCurrentDate() {
+        const currDate = new Date()
+        const dateInputValue = document.querySelector('input[type="date"]')
+        const year = currDate.getFullYear()
+        const month = ('0' + (currDate.getMonth() + 1)).slice(-2)
+        const date = ('0' + currDate.getDate()).slice(-2)
+        dateInputValue.value = `${year}-${month}-${date}`
+    },
+
+    sortByDate(A, B) {
+        const [date1, month1, year1] = A.date.split("/")
+        const [date2, month2, year2] = B.date.split("/")
+        const dateA = new Date(year1, month1, date1)
+        const dateB = new Date(year2, month2, date2)
+        // B - A for descending order
+        return dateB - dateA
+    },
+
+    months: ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
+
+    getMonthAndYearString(transaction) {
+        const date = transaction.date.split("/")
+        const month = Number(date[1]) - 1
+
+        return `${Utils.months[month]} de ${date[2]}`
+    }
 }
 
 const Form = {
@@ -179,7 +302,9 @@ const App = {
     init() {
         Transaction.all.forEach(DOM.addTransaction)
         DOM.updateBalance()
-        Storage.set(Transaction.all)   
+        DOM.updateMonthBalance()
+        MonthCards.addListeners()
+        Storage.set(Transaction.all)
     },
 
     reload() {
