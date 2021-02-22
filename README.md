@@ -1,4 +1,4 @@
-# dev_finance_maratona_discover_Rocketseat
+# dev_finance_maratona_discover_Rocketseat :rocket:
 <br>
 <strong>Finance control web app that uses localStorage.</strong>
 <br>
